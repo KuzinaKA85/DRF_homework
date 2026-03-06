@@ -1,8 +1,10 @@
 from rest_framework import generics
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.viewsets import ModelViewSet
 
 from materials.models import Course, Lesson
-from materials.serializers import CourseSerializer, LessonSerializer
+from materials.serializers import CourseSerializer, LessonSerializer, PaymentSerializer
+from users.models import Payment
 
 
 class CourseViewSet(ModelViewSet):
