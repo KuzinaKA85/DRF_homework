@@ -1,8 +1,8 @@
 from rest_framework import generics
 from rest_framework.filters import SearchFilter, OrderingFilter
 
-from materials.serializers import PaymentSerializer
-from users.models import Payment
+from users.serializers import PaymentSerializer, UserSerializer
+from users.models import Payment, User
 
 
 class PaymentListAPIView(generics.ListAPIView):
@@ -18,3 +18,8 @@ class PaymentListAPIView(generics.ListAPIView):
     ]
     ordering_fields = ["payment_date", "amount"]
     ordering = ["-payment_date"]
+
+
+class UserDetailAPIView(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
