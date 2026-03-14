@@ -11,6 +11,11 @@ class CourseViewSet(ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
+    def perform_create(self, serializer):
+        course = serializer.save()
+        course.owner = self.request.user
+        course.save()
+
 
 class LessonListAPIView(generics.ListAPIView):
     """Generic-класс для отображения списка уроков"""
@@ -30,6 +35,11 @@ class LessonCreateAPIView(generics.CreateAPIView):
     """Generic-класс для создания урока"""
 
     serializer_class = LessonSerializer
+
+    def perform_create(self, serializer):
+        lesson = serializer.save()
+        lesson.owner = self.request.user
+        lesson.save()
 
 
 class LessonUpdateAPIView(generics.UpdateAPIView):

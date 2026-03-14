@@ -1,4 +1,4 @@
-from django.contrib.auth.models import UserManager, AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 
 from materials.models import Course, Lesson
