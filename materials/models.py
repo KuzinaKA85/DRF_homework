@@ -28,6 +28,15 @@ class Course(models.Model):
         verbose_name="Опубликован",
         help_text="Отметьте, если курс доступен для просмотра",
     )
+    owner = models.ForeignKey(
+        "users.User",
+        on_delete=models.CASCADE,
+        verbose_name="Владелец",
+        related_name="courses",
+        null=True,
+        blank=True,
+        help_text="Укажите владельца курса",
+    )
 
     class Meta:
         verbose_name = "Курс"
@@ -71,6 +80,15 @@ class Lesson(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+    owner = models.ForeignKey(
+        "users.User",
+        on_delete=models.CASCADE,
+        verbose_name="Владелец",
+        related_name="lessons",
+        null=True,
+        blank=True,
+        help_text="Укажите владельца урока",
+    )
 
     class Meta:
         verbose_name = "Урок"
