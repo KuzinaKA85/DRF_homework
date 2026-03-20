@@ -4,8 +4,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
+from yaml import serialize
 
 from materials.models import Course, Lesson, Subscription
+from materials.pagination import MyPagination
 from materials.serializers import CourseSerializer, LessonSerializer
 from users.permissions import IsModer, IsOwner, IsNotModer
 
@@ -16,6 +18,7 @@ class CourseViewSet(ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = MyPagination
 
     def get_permissions(self):
         # Создание: только НЕ модераторы
@@ -34,6 +37,12 @@ class CourseViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
+    def get(self, request):
+        queryset = Course.objects.all()
+        paginated_queryset = self.paginate_queryset(queryset)
+        serializer = CourseSerializer(paginated_queryset, many=True)
+        return self.get_paginated_response(serializer.data)
+
 
 class LessonListAPIView(generics.ListAPIView):
     """Список уроков"""
@@ -41,6 +50,7 @@ class LessonListAPIView(generics.ListAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     permission_classes = [IsAuthenticated]
+    pagination_class = MyPagination
 
 
 class LessonRetrieveAPIView(generics.RetrieveAPIView):

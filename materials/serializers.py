@@ -31,6 +31,7 @@ class CourseSerializer(ModelSerializer):
             "lesson_count",
             "lessons",
             "owner",
+            "is_subscribed",
         ]
         read_only_fields = ["owner"]
 
