@@ -1,8 +1,11 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from materials.models import Course, Lesson
+from materials.models import Course, Lesson, Subscription
 from materials.serializers import CourseSerializer, LessonSerializer
 from users.permissions import IsModer, IsOwner, IsNotModer
 
@@ -74,3 +77,41 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
 
     queryset = Lesson.objects.all()
     permission_classes = [IsAuthenticated, IsOwner]
+
+
+class SubscriptionAPIView(APIView):
+    """API для управления подпиской на курс"""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        course_id = request.data.get("course_id")
+
+        if not course_id:
+            return Response({"error": "Не указан ID курса"}, status=400)
+
+        course = get_object_or_404(Course, id=course_id)
+
+        # Проверяем, есть ли подписка
+        subscription = Subscription.objects.filter(user=user, course=course)
+
+        if subscription.exists():
+            # Если есть - удаляем
+            subscription.delete()
+            message = "Подписка удалена"
+            is_subscribed = False
+        else:
+            # Если нет - создаем
+            Subscription.objects.create(user=user, course=course)
+            message = "Подписка добавлена"
+            is_subscribed = True
+
+        return Response(
+            {
+                "message": message,
+                "is_subscribed": is_subscribed,
+                "course_id": course.id,
+                "course_title": course.title_course,
+            }
+        )
