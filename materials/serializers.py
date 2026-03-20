@@ -2,12 +2,14 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import ModelSerializer
 
 from materials.models import Course, Lesson
+from materials.validators import YouTubeValidator
 
 
 class LessonSerializer(ModelSerializer):
     class Meta:
         model = Lesson
         fields = "__all__"
+        validators = [YouTubeValidator(field="video_url")]
 
 
 class CourseSerializer(ModelSerializer):
@@ -32,10 +34,3 @@ class CourseSerializer(ModelSerializer):
 
     def get_lesson_count(self, obj):
         return obj.lessons.count()
-
-    # def create(self, validated_data):
-    #     # Получаем пользователя из контекста
-    #     user = self.context['request'].user
-    #     if user.is_authenticated:
-    #         validated_data['owner'] = user
-    #     return super().create(validated_data)

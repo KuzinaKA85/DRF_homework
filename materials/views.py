@@ -4,7 +4,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from materials.models import Course, Lesson
 from materials.serializers import CourseSerializer, LessonSerializer
-from users.permissions import IsModer, IsOwner
+from users.permissions import IsModer, IsOwner, IsNotModer
 
 
 class CourseViewSet(ModelViewSet):
@@ -12,60 +12,65 @@ class CourseViewSet(ModelViewSet):
 
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-
-    def perform_create(self, serializer):
-        course = serializer.save()
-        course.owner = self.request.user
-        course.save()
+    permission_classes = [IsAuthenticated]
 
     def get_permissions(self):
+        # Создание: только НЕ модераторы
         if self.action == "create":
-            self.permission_classes = (~IsModer,)
-        elif self.action in ["update", "retrieve"]:
-            self.permission_classes = (IsModer | IsOwner,)
+            return [IsAuthenticated(), IsNotModer()]
+        # Удаление: только владелец
         elif self.action == "destroy":
-            self.permission_classes = (IsOwner,)
-        return super().get_permissions()
+            return [IsAuthenticated(), IsOwner()]
+        # Редактирование: владелец ИЛИ модератор
+        elif self.action in ["update", "partial_update"]:
+            # Используем список разрешений - они работают как И
+            return [IsAuthenticated(), IsOwner() or IsModer()]
+        # Просмотр: все авторизованные
+        return [IsAuthenticated()]
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
 
 class LessonListAPIView(generics.ListAPIView):
-    """Generic-класс для отображения списка уроков"""
+    """Список уроков"""
 
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = (IsAuthenticated, ~IsModer | IsOwner)
+    permission_classes = [IsAuthenticated]
 
 
 class LessonRetrieveAPIView(generics.RetrieveAPIView):
-    """Generic-класс для отображения одного урока"""
+    """Просмотр урока"""
 
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = (IsAuthenticated, ~IsModer | IsOwner)
+    permission_classes = [IsAuthenticated]
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
-    """Generic-класс для создания урока"""
+    """Создание урока - только НЕ модераторы"""
 
     serializer_class = LessonSerializer
-    permission_classes = (~IsModer, IsAuthenticated)
+    permission_classes = [IsAuthenticated, IsNotModer]
 
     def perform_create(self, serializer):
-        lesson = serializer.save()
-        lesson.owner = self.request.user
-        lesson.save()
+        serializer.save(owner=self.request.user)
 
 
 class LessonUpdateAPIView(generics.UpdateAPIView):
-    """Generic-класс для обновления урока"""
+    """Обновление урока - владелец ИЛИ модератор"""
 
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = (IsAuthenticated, ~IsModer | IsOwner)
+
+    def get_permissions(self):
+        # Возвращаем список разрешений
+        return [IsAuthenticated, IsOwner or IsModer]
 
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
-    """Generic-класс для удаления урока"""
+    """Удаление урока - только владелец"""
 
     queryset = Lesson.objects.all()
-    permission_classes = (IsAuthenticated, IsModer | IsOwner)
+    permission_classes = [IsAuthenticated, IsOwner]
