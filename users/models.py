@@ -89,7 +89,7 @@ class Payment(models.Model):
     )
 
     session_id = models.CharField(
-        max_length=300,
+        max_length=500,
         verbose_name="id сессии",
         blank=True,
         null=True,
@@ -97,8 +97,8 @@ class Payment(models.Model):
     )
 
     link = models.URLField(
-        max_length=400,
-        verbose_name="id сессии",
+        max_length=1000,
+        verbose_name="Ссылка на оплату",
         blank=True,
         null=True,
         help_text="Укажите id сессии",
