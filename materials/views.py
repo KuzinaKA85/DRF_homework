@@ -10,6 +10,7 @@ from materials.pagination import MyPagination
 from materials.serializers import CourseSerializer, LessonSerializer
 from users.models import User
 from users.permissions import IsModer, IsOwner, IsNotModer, IsOwnerOrModer
+from .tasks import send_course_update_email
 
 
 class CourseViewSet(ModelViewSet):
@@ -36,6 +37,14 @@ class CourseViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    def perform_update(self, serializer):
+        """При обновлении курса отправляем уведомления подписчикам"""
+        course = serializer.save()
+
+        # Отправляем асинхронное уведомление подписчикам (только если курс опубликован)
+        if course.is_published:
+            send_course_update_email.delay(course.id, course.title_course)
 
 
 class LessonListAPIView(generics.ListAPIView):
