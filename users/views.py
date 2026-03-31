@@ -56,7 +56,7 @@ class UserViewSet(ModelViewSet):
 
 
 class PaymentCreateAPIView(generics.CreateAPIView):
-    """ Generic-класс для создания платежа """
+    """Generic-класс для создания платежа"""
 
     serializer_class = PaymentSerializer
     queryset = Payment.objects.all()
