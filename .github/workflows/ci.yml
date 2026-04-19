@@ -25,9 +25,15 @@ jobs:
 
     - name: Run migrations
       run: poetry run python manage.py migrate
+      env:
+        SECRET_KEY: "test-secret-key"  # фейковый, только для тестов
+        DEBUG: "1"
 
     - name: Run tests
       run: poetry run python manage.py test
+      env:
+        SECRET_KEY: "test-secret-key"  # фейковый, только для тестов
+        DEBUG: "1"
 
   build:
     needs: test
