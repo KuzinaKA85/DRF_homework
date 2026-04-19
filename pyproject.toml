@@ -21,7 +21,9 @@ dependencies = [
     "redis (>=7.4.0,<8.0.0)",
     "celery (>=5.6.3,<6.0.0)",
     "django-celery-beat (>=2.9,<3.0)",
-    "django-timezone-field (>=5.0,<7.0)"
+    "django-timezone-field (>=5.0,<7.0)",
+    "gunicorn (>=25.3.0,<26.0.0)",
+    "django-redis (>=6.0.0,<7.0.0)"
 ]
 
 
