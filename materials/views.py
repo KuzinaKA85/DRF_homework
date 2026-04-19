@@ -8,7 +8,6 @@ from rest_framework.viewsets import ModelViewSet
 from materials.models import Course, Lesson, Subscription
 from materials.pagination import MyPagination
 from materials.serializers import CourseSerializer, LessonSerializer
-from users.models import User
 from users.permissions import IsModer, IsOwner, IsNotModer, IsOwnerOrModer
 from .tasks import send_course_update_email
 
