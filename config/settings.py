@@ -75,13 +75,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-if "test" in sys.argv:
+# Определяем, что мы в тестовом режиме
+IS_TESTING = "test" in sys.argv or "pytest" in sys.argv or os.getenv("CI", "") == "true"
+
+if IS_TESTING:
+    # Тестовый режим — используем SQLite
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "test_db_sqlite3",
+            "NAME": BASE_DIR / "test_db.sqlite3",
         }
     }
+    SECRET_KEY = "django-insecure-test-key-for-ci"
+    DEBUG = True
 else:
     DATABASES = {
         "default": {
@@ -93,6 +99,8 @@ else:
             "PORT": os.getenv("DATABASE_PORT"),
             }
     }
+    SECRET_KEY = os.getenv("SECRET_KEY")
+    DEBUG = os.getenv("DEBUG", "0") == "1"
 
 
 AUTH_PASSWORD_VALIDATORS = [
