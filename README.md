@@ -132,6 +132,7 @@ docker compose down -v
     ├── .venv1/                # Виртуальное окружение (не включается в Git)
     ├── config/                # Настройки проекта
     ├── materials/             # Приложение материалов (курсы, уроки)
+    ├── nginx/                 # Конфигурация Nginx (nginx.conf, Dockerfile)
     ├── static/                # Статические файлы
     ├── users/                 # Приложение пользователей
     ├── docker-compose.yaml    # Оркестрация сервисов
@@ -149,3 +150,78 @@ docker compose down -v
 - Redis доступен по хосту `redis`
 
 Использование `localhost` внутри контейнеров не работает.
+
+## Деплой на удалённый сервер (Ubuntu)
+
+### 1. Подготовка сервера
+
+Подключитесь к серверу по SSH:
+
+```bash
+ssh пользователь@ip_адрес
+```
+ Установите Docker
+```bash
+sudo apt update
+sudo apt install docker.io -y
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo usermod -aG docker $USER
+```
+Выйдете и зайдите заново
+```bash
+exit
+ssh пользователь@ip_адрес
+```
+Проверьте Docker
+```bash
+docker ps
+```
+### 2. Настройка GitHub Secrets
+В репозитории: Settings → Secrets and variables → Actions
+Добавьте секреты:
+
+- DOCKER_HUB_USERNAME	- логин на Docker Hub
+- DOCKER_HUB_ACCESS_TOKEN	Токен (Docker Hub → Settings → New Access Token)
+- SSH_USER - имя пользователя на сервере
+- SERVER_IP - IP вашего сервера
+- SSH_KEY - содержимое приватного ключа (cat ~/.ssh/id_ed25519)
+
+### 3. GitHub Actions (уже настроен)
+В вашем проекте есть файл .github/workflows/ci.yml. Он автоматически:
+- Запускает тесты
+- Собирает Docker-образ
+- Отправляет образ в Docker Hub
+- Подключается к серверу и запускает контейнер
+
+### 4. Запуск деплоя
+Просто запушите изменения в любую ветку:
+```bash
+git add .
+git commit -m "Деплой"
+git push origin название_ветки
+```
+Статус смотрите на вкладке Actions в GitHub.
+### 5. Проверка
+Откройте в браузере:
+```
+http://IP_вашего_сервера
+```
+### 6. Команды на сервере
+```bash
+# Просмотр контейнеров
+docker ps
+
+# Логи приложения
+docker logs drf-homework --tail 50
+
+# Перезапуск
+docker restart drf-homework
+
+# Создание суперпользователя
+docker exec -it drf-homework poetry run python manage.py csu
+```
+### 7. Возможные проблемы
+- "permission denied при Docker" -> *sudo usermod -aG docker $USER* → выйти и зайти
+- "Сайт не открывается" -> *sudo ufw allow 80/tcp*
+- "Контейнер падает" -> Посмотреть логи: *docker logs drf-homework*
