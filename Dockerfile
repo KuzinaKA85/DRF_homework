@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Устанавливаем Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
+RUN pip install poetry
 
 # Добавляем Poetry в PATH
 ENV PATH="/root/.local/bin:$PATH"
@@ -22,7 +22,10 @@ ENV PATH="/root/.local/bin:$PATH"
 COPY pyproject.toml poetry.lock ./
 
 # Устанавливаем зависимости Python с помощью Poetry
-RUN poetry install --no-root
+# RUN poetry install --no-root
+
+# Устанавливаем зависимости
+RUN poetry install --no-interaction --no-ansi --no-root
 
 # Копируем исходный код приложения в контейнер
 COPY . .
@@ -33,10 +36,14 @@ COPY . .
 # ENV CELERY_BACKEND="CELERY_RESULT_BACKEND"
 
 # Создаем директорию для медиафайлов
-RUN mkdir -p /app/media
+RUN mkdir -p /app/media /app/staticfiles
+
+# Собираем статику (если есть manage.py)
+RUN poetry run python manage.py collectstatic --noinput || true
 
 # Пробрасываем порт, который будет использовать Django
 EXPOSE 8000
 
 # Команда для запуска приложения
-CMD ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
+# CMD ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["poetry", "run", "gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
